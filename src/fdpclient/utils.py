@@ -7,6 +7,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from rdflib import DCAT, RDF, Graph, URIRef
+from rdflib.term import Node
 
 if TYPE_CHECKING:
     from fdpclient.fdpclient import FDPClient
@@ -15,7 +16,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def rewrite_graph_subject(g: Graph, oldsubject: str | URIRef, newsubject: str | URIRef):
+def rewrite_graph_subject(
+    g: Graph,
+    oldsubject: str | URIRef | Node | None,
+    newsubject: str | URIRef | Node | None,
+):
     """Modifies a graph such that all elements of the oldsubject are replaced by newsubject
 
     Needed by the FDP update functionality to work around some ill-defined behavior
@@ -29,8 +34,14 @@ def rewrite_graph_subject(g: Graph, oldsubject: str | URIRef, newsubject: str | 
     newsubject : str, URIRef
         New subject which will replace the old subject
     """
-    for s, p, o in g.triples((URIRef(oldsubject), None, None)):
-        g.add((URIRef(newsubject), p, o))
+    if not (oldsubject and newsubject):
+        return
+    if oldsubject is str:
+        oldsubject = URIRef(oldsubject)
+    if newsubject is str:
+        newsubject = URIRef(newsubject)
+    for s, p, o in g.triples((oldsubject, None, None)):
+        g.add((newsubject, p, o))
         g.remove((s, p, o))
 
 
@@ -39,7 +50,7 @@ def add_or_update_dataset(
     fdpclient: FDPClient,
     dataset_identifier: str | None = None,
     catalog_uri: str | None = None,
-    sparql: FDPSPARQLClient = None,
+    sparql: FDPSPARQLClient | None = None,
 ):
     """Either posts or updates a dataset on a FAIR Data Point
 

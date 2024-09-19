@@ -9,7 +9,7 @@ description = 'A FAIR Data Point client written in Python'
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
-keywords = []
+keywords = ["FDP", "Client", "SPARQL", "FAIR Data Point"]
 authors = [{ name = "Mark Janse", email = "mark.janse@health-ri.nl" }]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -33,7 +33,7 @@ Source = "https://github.com/health-ri/fdpclient"
 path = "src/fdpclient/__about__.py"
 
 [tool.hatch.envs.types]
-extra-dependencies = ["mypy>=1.0.0"]
+extra-dependencies = ["mypy>=1.0.0", "pytest"]
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/fdpclient tests}"
 
