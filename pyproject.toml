@@ -9,7 +9,7 @@ description = 'A FAIR Data Point client written in Python'
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
-keywords = ["FDP", "Client", "SPARQL", "FAIR Data Point"]
+keywords = ["FDP"]
 authors = [{ name = "Mark Janse", email = "mark.janse@health-ri.nl" }]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -48,6 +48,19 @@ dependencies = [
 
 [[tool.hatch.envs.hatch-test.matrix]]
 python = ["3.8", "3.9", "3.10", "3.11", "3.12", "pypy3.9", "pypy3.10"]
+
+
+[tool.hatch.envs.coverage]
+detached = true
+dependencies = ["coverage[toml]>=6.2", "lxml"]
+
+[tool.hatch.envs.coverage.scripts]
+combine = "coverage combine {args}"
+report-xml = "coverage xml"
+report-uncovered-html = "coverage html --skip-covered --skip-empty"
+generate-summary = "python scripts/generate_coverage_summary.py"
+write-summary-report = "python scripts/write_coverage_summary_report.py"
+
 
 [tool.coverage.run]
 source_pkgs = ["fdpclient", "tests"]

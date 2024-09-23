@@ -1,4 +1,4 @@
-# fdpclient
+# FAIR Data Point client
 
 [![PyPI - Version](https://img.shields.io/pypi/v/fdpclient.svg)](https://pypi.org/project/fdpclient)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/fdpclient.svg)](https://pypi.org/project/fdpclient)
