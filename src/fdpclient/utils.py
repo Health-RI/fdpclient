@@ -34,14 +34,8 @@ def rewrite_graph_subject(
     newsubject : str, URIRef
         New subject which will replace the old subject
     """
-    if not (oldsubject and newsubject):
-        return
-    if oldsubject is str:
-        oldsubject = URIRef(oldsubject)
-    if newsubject is str:
-        newsubject = URIRef(newsubject)
-    for s, p, o in g.triples((oldsubject, None, None)):
-        g.add((newsubject, p, o))
+    for s, p, o in g.triples((URIRef(oldsubject), None, None)):
+        g.add((URIRef(newsubject), p, o))
         g.remove((s, p, o))
 
 
@@ -50,7 +44,7 @@ def add_or_update_dataset(
     fdpclient: FDPClient,
     dataset_identifier: str | None = None,
     catalog_uri: str | None = None,
-    sparql: FDPSPARQLClient | None = None,
+    sparql: FDPSPARQLClient = None,
 ):
     """Either posts or updates a dataset on a FAIR Data Point
 
