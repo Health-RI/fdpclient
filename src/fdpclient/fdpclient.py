@@ -49,7 +49,7 @@ class FDPClient(BasicAPIClient):
         headers = self.get_headers()
         super().__init__(self.base_url, headers)
 
-    def login_fdp(self, username: str, password: str) -> str:
+    def login_fdp(self, username: str, password: str, timeout: float = 60) -> str:
         """Logs in to a Fair Data Point and retrieves a JWT token
 
         Parameters
@@ -58,6 +58,8 @@ class FDPClient(BasicAPIClient):
             username for authentication
         password : str
             password for authentication
+        timeout : float, optional
+            timeout for login request, by default 60
 
         Returns
         -------
@@ -67,6 +69,7 @@ class FDPClient(BasicAPIClient):
         token_response = requests.post(
             f"{self.base_url}/tokens",
             json={"email": username, "password": password},
+            timeout=timeout,
         )
         token_response.raise_for_status()
         response = token_response.json()
@@ -107,9 +110,7 @@ class FDPClient(BasicAPIClient):
         logger.debug("Posting metadata to %s", path)
         return self.post(path=path, data=metadata.serialize(format="turtle"))
 
-    def update_serialized(
-        self, resource_uri: str, metadata: Graph
-    ) -> requests.Response:
+    def update_serialized(self, resource_uri: str, metadata: Graph) -> requests.Response:
         """Serializes and updates (PUTs) a graph on an FDP
 
         Parameters
@@ -162,9 +163,7 @@ class FDPClient(BasicAPIClient):
         URIRef
             URI of (subject of) published dataset
         """
-        post_response = self.post_serialized(
-            resource_type=resource_type, metadata=metadata
-        )
+        post_response = self.post_serialized(resource_type=resource_type, metadata=metadata)
 
         # FDP will return a 201 status code with the new identifier of the published record
         fdp_subject = URIRef(post_response.headers["Location"])

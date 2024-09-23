@@ -7,9 +7,10 @@ import logging
 from typing import TYPE_CHECKING
 
 from rdflib import DCAT, RDF, Graph, URIRef
-from rdflib.term import Node
 
 if TYPE_CHECKING:
+    from rdflib.term import Node
+
     from fdpclient.fdpclient import FDPClient
     from fdpclient.sparqlclient import FDPSPARQLClient
 
@@ -34,8 +35,8 @@ def rewrite_graph_subject(
     newsubject : str, URIRef
         New subject which will replace the old subject
     """
-    for s, p, o in g.triples((URIRef(oldsubject), None, None)):
-        g.add((URIRef(newsubject), p, o))
+    for s, p, o in g.triples((URIRef(oldsubject), None, None)):  # type: ignore[arg-type]
+        g.add((URIRef(newsubject), p, o))  # type: ignore[arg-type]
         g.remove((s, p, o))
 
 
@@ -44,7 +45,7 @@ def add_or_update_dataset(
     fdpclient: FDPClient,
     dataset_identifier: str | None = None,
     catalog_uri: str | None = None,
-    sparql: FDPSPARQLClient = None,
+    sparql: FDPSPARQLClient | None = None,
 ):
     """Either posts or updates a dataset on a FAIR Data Point
 

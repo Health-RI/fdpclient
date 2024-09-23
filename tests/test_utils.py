@@ -13,9 +13,7 @@ from fdpclient.utils import (
 
 def test_subject_replacement():
     old_graph = Graph().parse(source="tests/references/valid_project.ttl")
-    reference_graph = Graph().parse(
-        source="tests/references/valid_project_subject_replaced.ttl"
-    )
+    reference_graph = Graph().parse(source="tests/references/valid_project_subject_replaced.ttl")
 
     rewrite_graph_subject(
         old_graph,

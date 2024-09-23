@@ -58,12 +58,9 @@ dependencies = ["coverage[toml]>=6.2", "lxml"]
 combine = "coverage combine {args}"
 report-xml = "coverage xml"
 report-uncovered-html = "coverage html --skip-covered --skip-empty"
-generate-summary = "python scripts/generate_coverage_summary.py"
-write-summary-report = "python scripts/write_coverage_summary_report.py"
-
 
 [tool.coverage.run]
-source_pkgs = ["fdpclient", "tests"]
+source_pkgs = ["fdpclient"]
 branch = true
 parallel = true
 omit = ["src/fdpclient/__about__.py"]
@@ -74,3 +71,7 @@ tests = ["tests", "*/fdpclient/tests"]
 
 [tool.coverage.report]
 exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["INP001", "PLR2004", "S101", "TID252", "N803"]

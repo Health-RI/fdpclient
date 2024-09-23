@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 import requests
@@ -11,12 +11,7 @@ from rdflib.compare import to_isomorphic
 from rdflib.namespace import DCAT, RDF
 
 from fdpclient.fdpclient import FDPClient
-from fdpclient.sparqlclient import FDPSPARQLClient
-from fdpclient.utils import (
-    add_or_update_dataset,
-    remove_node_from_graph,
-    rewrite_graph_subject,
-)
+from fdpclient.utils import remove_node_from_graph
 
 
 @pytest.fixture
@@ -28,12 +23,20 @@ def fdp_client_mock(requests_mock):
     requests_mock.put(
         "https://fdp.example.com/dataset/12345678",
     )
-    requests_mock.post(
-        "https://fdp.example.com/dataset",
-        status_code=201,
-        headers={"Location": "https://fdp.example.com/dataset/12345678"},
-        body=open(file="tests/references/fdp_dataset.ttl", mode="rb"),
-    )
+    with open(file="tests/references/fdp_dataset.ttl", mode="rb") as fdp_dataset_file:
+        requests_mock.post(
+            "https://fdp.example.com/dataset",
+            status_code=201,
+            headers={"Location": "https://fdp.example.com/dataset/12345678"},
+            body=fdp_dataset_file,
+        )
+        requests_mock.get(
+            "https://fdp.example.com/dataset/12345678",
+            status_code=200,
+            headers={"Content-Type": "text/turtle"},
+            body=fdp_dataset_file,
+        )
+
     requests_mock.post(
         "https://fdp.example.com/catalog",
         status_code=201,
@@ -44,12 +47,7 @@ def fdp_client_mock(requests_mock):
         status_code=201,
         headers={"Location": "https://fdp.example.com/distribution/abcdefgh"},
     )
-    requests_mock.get(
-        "https://fdp.example.com/dataset/12345678",
-        status_code=200,
-        headers={"Content-Type": "text/turtle"},
-        body=open(file="tests/references/fdp_dataset.ttl", mode="rb"),
-    )
+
     requests_mock.delete(
         "https://fdp.example.com/dataset/12345678",
         status_code=204,
@@ -67,9 +65,7 @@ def empty_dataset_graph():
 
 def test_fdp_clienterror(requests_mock, empty_dataset_graph):
     requests_mock.post("https://fdp.example.com/tokens", json={"token": "1234abcd"})
-    requests_mock.post(
-        "https://fdp.example.com/dataset", status_code=418, reason="I'm a teapot"
-    )
+    requests_mock.post("https://fdp.example.com/dataset", status_code=418, reason="I'm a teapot")
     fdp_client = FDPClient("https://fdp.example.com", "user@example.com", "pass")
 
     with pytest.raises(requests.HTTPError):
@@ -117,10 +113,7 @@ def test_fdp_publish(requests_mock, fdp_client_mock: FDPClient):
     fdp_client_mock.publish_record("https://fdp.example.com/dataset/12345678")
 
     assert requests_mock.call_count == 2
-    assert (
-        requests_mock.last_request.url
-        == "https://fdp.example.com/dataset/12345678/meta/state"
-    )
+    assert requests_mock.last_request.url == "https://fdp.example.com/dataset/12345678/meta/state"
     assert requests_mock.last_request.json() == {"current": "PUBLISHED"}
 
 
@@ -194,10 +187,7 @@ def test_fdp_create_and_publish(requests_mock, fdp_client_mock):
     assert requests_mock.request_history[-2].method == "POST"
 
     # Test if dataset is actually published
-    assert (
-        requests_mock.last_request.url
-        == "https://fdp.example.com/dataset/12345678/meta/state"
-    )
+    assert requests_mock.last_request.url == "https://fdp.example.com/dataset/12345678/meta/state"
     assert requests_mock.last_request.headers["Content-Type"] == "application/json"
     assert requests_mock.last_request.method == "PUT"
     assert requests_mock.last_request.json() == {"current": "PUBLISHED"}
@@ -210,175 +200,3 @@ def test_fdp_node_removal():
     remove_node_from_graph(URIRef("https://example.com/dataset"), graph_to_modify)
 
     assert to_isomorphic(reference_graph) == to_isomorphic(graph_to_modify)
-
-
-# These test cases are not the best. Better would be to emulate the actual endpoint
-@patch("SPARQLWrapper.SPARQLWrapper.setQuery")
-@patch("SPARQLWrapper.SPARQLWrapper.queryAndConvert")
-def test_subject_query_success(queryAndConvert, setQuery):
-    expected_decoded_json = {
-        "head": {"vars": ["subject"]},
-        "results": {
-            "bindings": [
-                {
-                    "subject": {
-                        "type": "uri",
-                        "value": "http://example.com/dataset",
-                    }
-                }
-            ]
-        },
-    }
-    queryAndConvert.return_value = expected_decoded_json
-
-    expected_query = """PREFIX dcterms: <http://purl.org/dc/terms/>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-
-SELECT *
-WHERE {
-    ?subject dcterms:identifier "https://example.com/dataset" .
-    ?subject dcterms:isPartOf <https://example.com> .
-}"""
-
-    t = FDPSPARQLClient("https://example.com")
-
-    assert (
-        t.find_subject("https://example.com/dataset", "https://example.com")
-        == "http://example.com/dataset"
-    )
-    setQuery.assert_called_with(expected_query)
-
-
-@patch("SPARQLWrapper.SPARQLWrapper.queryAndConvert")
-def test_subject_query_empty(queryAndConvert):
-    expected_decoded_json = {
-        "head": {"vars": ["subject"]},
-        "results": {"bindings": []},
-    }
-    queryAndConvert.return_value = expected_decoded_json
-
-    t = FDPSPARQLClient("https://example.com")
-
-    assert t.find_subject("https://example.com/dataset", "https://example.com") is None
-
-
-@patch("SPARQLWrapper.SPARQLWrapper.queryAndConvert")
-def test_subject_query_multiple(queryAndConvert):
-    expected_decoded_json = {
-        "head": {"vars": ["subject"]},
-        "results": {
-            "bindings": [
-                {
-                    "subject": {
-                        "type": "uri",
-                        "value": "http://example.com/dataset1",
-                    }
-                },
-                {
-                    "subject": {
-                        "type": "uri",
-                        "value": "http://example.com/dataset2",
-                    }
-                },
-            ]
-        },
-    }
-    queryAndConvert.return_value = expected_decoded_json
-
-    t = FDPSPARQLClient("https://example.com")
-    with pytest.raises(ValueError):
-        t.find_subject("https://example.com/dataset", "https://example.com")
-
-
-@patch("SPARQLWrapper.SPARQLWrapper.queryAndConvert")
-def test_subject_query_typeerror(queryAndConvert):
-    expected_decoded_json = {
-        "head": {"vars": ["subject"]},
-        "results": {
-            "bindings": [
-                {
-                    "subject": {
-                        "type": "literal",
-                        "value": "incorrect_result",
-                    }
-                }
-            ]
-        },
-    }
-    queryAndConvert.return_value = expected_decoded_json
-
-    t = FDPSPARQLClient("https://example.com")
-    with pytest.raises(TypeError):
-        t.find_subject("https://example.com/dataset", "https://example.com")
-
-
-# Not using the above FDP client here, easier to check if the related function calls in the client
-# are made. We can assume those calls are correct as they are tested above
-def test_dataset_updater_nomatch():
-    sparqlclient = MagicMock(spec=FDPSPARQLClient)
-    fdpclient = MagicMock(spec=FDPClient)
-    metadata = Graph()
-    dataset_identifier = "https://example.com/dataset"
-    catalog_uri = "https://fdp.example.com/catalog/123"
-
-    # No match found
-    sparqlclient.find_subject.return_value = None
-
-    add_or_update_dataset(
-        metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient
-    )
-
-    sparqlclient.find_subject.assert_called_once_with(dataset_identifier, catalog_uri)
-    fdpclient.create_and_publish.assert_called_once_with("dataset", metadata)
-    fdpclient.update_serialized.assert_not_called()
-
-
-def test_dataset_updater_match(empty_dataset_graph):
-    sparqlclient = MagicMock(spec=FDPSPARQLClient)
-    fdpclient = MagicMock(spec=FDPClient)
-    metadata = empty_dataset_graph
-    dataset_identifier = "https://example.com/dataset"
-    catalog_uri = "https://fdp.example.com/catalog/123"
-
-    subject_uri = "https://fdp.example.com/dataset/456"
-    sparqlclient.find_subject.return_value = subject_uri
-
-    add_or_update_dataset(
-        metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient
-    )
-
-    sparqlclient.find_subject.assert_called_once_with(dataset_identifier, catalog_uri)
-    fdpclient.create_and_publish.assert_not_called()
-    fdpclient.update_serialized.assert_called_once_with(subject_uri, metadata)
-
-
-def test_dataset_updater_invalid(empty_dataset_graph):
-    sparqlclient = MagicMock(spec=FDPSPARQLClient)
-    fdpclient = MagicMock(spec=FDPClient)
-    metadata = empty_dataset_graph
-    dataset_identifier = None
-    catalog_uri = "https://fdp.example.com/catalog/123"
-
-    add_or_update_dataset(
-        metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient
-    )
-
-    fdpclient.create_and_publish.assert_called_once_with("dataset", metadata)
-    sparqlclient.find_subject.assert_not_called()
-    fdpclient.update_serialized.assert_not_called()
-
-
-def test_subject_replacement():
-    old_graph = Graph().parse(source="tests/references/valid_project.ttl")
-    reference_graph = Graph().parse(
-        source="tests/references/valid_project_subject_replaced.ttl"
-    )
-
-    rewrite_graph_subject(
-        old_graph,
-        "http://localhost/data/archive/projects/test_img2catalog",
-        "http://example.com/newsubject",
-    )
-
-    # print(new_graph.serialize())
-    assert to_isomorphic(reference_graph) == to_isomorphic(old_graph)

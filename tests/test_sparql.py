@@ -6,12 +6,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from rdflib import Graph, URIRef
-from rdflib.compare import to_isomorphic
 from rdflib.namespace import DCAT, RDF
 
 from fdpclient.fdpclient import FDPClient
 from fdpclient.sparqlclient import FDPSPARQLClient
-from fdpclient.utils import add_or_update_dataset, rewrite_graph_subject
+from fdpclient.utils import add_or_update_dataset
 
 
 @pytest.fixture
@@ -52,10 +51,7 @@ WHERE {
 
     t = FDPSPARQLClient("https://example.com")
 
-    assert (
-        t.find_subject("https://example.com/dataset", "https://example.com")
-        == "http://example.com/dataset"
-    )
+    assert t.find_subject("https://example.com/dataset", "https://example.com") == "http://example.com/dataset"
     setQuery.assert_called_with(expected_query)
 
 
@@ -96,7 +92,7 @@ def test_subject_query_multiple(queryAndConvert):
     queryAndConvert.return_value = expected_decoded_json
 
     t = FDPSPARQLClient("https://example.com")
-    with pytest.raises(ValueError):
+    with pytest.raises(expected_exception=ValueError, match="More than one result"):
         t.find_subject("https://example.com/dataset", "https://example.com")
 
 
@@ -134,9 +130,7 @@ def test_dataset_updater_nomatch():
     # No match found
     sparqlclient.find_subject.return_value = None
 
-    add_or_update_dataset(
-        metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient
-    )
+    add_or_update_dataset(metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient)
 
     sparqlclient.find_subject.assert_called_once_with(dataset_identifier, catalog_uri)
     fdpclient.create_and_publish.assert_called_once_with("dataset", metadata)
@@ -153,9 +147,7 @@ def test_dataset_updater_match(empty_dataset_graph):
     subject_uri = "https://fdp.example.com/dataset/456"
     sparqlclient.find_subject.return_value = subject_uri
 
-    add_or_update_dataset(
-        metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient
-    )
+    add_or_update_dataset(metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient)
 
     sparqlclient.find_subject.assert_called_once_with(dataset_identifier, catalog_uri)
     fdpclient.create_and_publish.assert_not_called()
@@ -169,9 +161,7 @@ def test_dataset_updater_invalid(empty_dataset_graph):
     dataset_identifier = None
     catalog_uri = "https://fdp.example.com/catalog/123"
 
-    add_or_update_dataset(
-        metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient
-    )
+    add_or_update_dataset(metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient)
 
     fdpclient.create_and_publish.assert_called_once_with("dataset", metadata)
     sparqlclient.find_subject.assert_not_called()
