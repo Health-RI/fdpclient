@@ -54,7 +54,7 @@ jobs:
         path: .coverage*
 
   coverage:
-    name: Report coverage
+    name: Report test coverage
     runs-on: ubuntu-latest
     needs:
     - run
