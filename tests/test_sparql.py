@@ -8,9 +8,9 @@ import pytest
 from rdflib import Graph, URIRef
 from rdflib.namespace import DCAT, RDF
 
-from fdpclient.fdpclient import FDPClient
-from fdpclient.sparqlclient import FDPSPARQLClient
-from fdpclient.utils import add_or_update_dataset
+from fairclient.fdpclient import FDPClient
+from fairclient.sparqlclient import FDPSPARQLClient
+from fairclient.utils import add_or_update_dataset
 
 
 @pytest.fixture
@@ -122,7 +122,7 @@ def test_subject_query_typeerror(queryAndConvert):
 # are made. We can assume those calls are correct as they are tested above
 def test_dataset_updater_nomatch():
     sparqlclient = MagicMock(spec=FDPSPARQLClient)
-    fdpclient = MagicMock(spec=FDPClient)
+    fairclient = MagicMock(spec=FDPClient)
     metadata = Graph()
     dataset_identifier = "https://example.com/dataset"
     catalog_uri = "https://fdp.example.com/catalog/123"
@@ -130,16 +130,16 @@ def test_dataset_updater_nomatch():
     # No match found
     sparqlclient.find_subject.return_value = None
 
-    add_or_update_dataset(metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient)
+    add_or_update_dataset(metadata, fairclient, dataset_identifier, catalog_uri, sparqlclient)
 
     sparqlclient.find_subject.assert_called_once_with(dataset_identifier, catalog_uri)
-    fdpclient.create_and_publish.assert_called_once_with("dataset", metadata)
-    fdpclient.update_serialized.assert_not_called()
+    fairclient.create_and_publish.assert_called_once_with("dataset", metadata)
+    fairclient.update_serialized.assert_not_called()
 
 
 def test_dataset_updater_match(empty_dataset_graph):
     sparqlclient = MagicMock(spec=FDPSPARQLClient)
-    fdpclient = MagicMock(spec=FDPClient)
+    fairclient = MagicMock(spec=FDPClient)
     metadata = empty_dataset_graph
     dataset_identifier = "https://example.com/dataset"
     catalog_uri = "https://fdp.example.com/catalog/123"
@@ -147,22 +147,22 @@ def test_dataset_updater_match(empty_dataset_graph):
     subject_uri = "https://fdp.example.com/dataset/456"
     sparqlclient.find_subject.return_value = subject_uri
 
-    add_or_update_dataset(metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient)
+    add_or_update_dataset(metadata, fairclient, dataset_identifier, catalog_uri, sparqlclient)
 
     sparqlclient.find_subject.assert_called_once_with(dataset_identifier, catalog_uri)
-    fdpclient.create_and_publish.assert_not_called()
-    fdpclient.update_serialized.assert_called_once_with(subject_uri, metadata)
+    fairclient.create_and_publish.assert_not_called()
+    fairclient.update_serialized.assert_called_once_with(subject_uri, metadata)
 
 
 def test_dataset_updater_invalid(empty_dataset_graph):
     sparqlclient = MagicMock(spec=FDPSPARQLClient)
-    fdpclient = MagicMock(spec=FDPClient)
+    fairclient = MagicMock(spec=FDPClient)
     metadata = empty_dataset_graph
     dataset_identifier = None
     catalog_uri = "https://fdp.example.com/catalog/123"
 
-    add_or_update_dataset(metadata, fdpclient, dataset_identifier, catalog_uri, sparqlclient)
+    add_or_update_dataset(metadata, fairclient, dataset_identifier, catalog_uri, sparqlclient)
 
-    fdpclient.create_and_publish.assert_called_once_with("dataset", metadata)
+    fairclient.create_and_publish.assert_called_once_with("dataset", metadata)
     sparqlclient.find_subject.assert_not_called()
-    fdpclient.update_serialized.assert_not_called()
+    fairclient.update_serialized.assert_not_called()

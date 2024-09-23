@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "fdpclient"
+name = "fairclient"
 dynamic = ["version"]
 description = 'A FAIR Data Point client written in Python'
 readme = "README.md"
@@ -25,17 +25,17 @@ classifiers = [
 dependencies = ["sparqlwrapper~=2.0", "rdflib~=7.0.0"]
 
 [project.urls]
-Documentation = "https://github.com/health-ri/fdpclient#readme"
-Issues = "https://github.com/health-ri/fdpclient/issues"
-Source = "https://github.com/health-ri/fdpclient"
+Documentation = "https://github.com/health-ri/fairclient#readme"
+Issues = "https://github.com/health-ri/fairclient/issues"
+Source = "https://github.com/health-ri/fairclient"
 
 [tool.hatch.version]
-path = "src/fdpclient/__about__.py"
+path = "src/fairclient/__about__.py"
 
 [tool.hatch.envs.types]
 extra-dependencies = ["mypy>=1.0.0", "pytest"]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/fdpclient tests}"
+check = "mypy --install-types --non-interactive {args:src/fairclient tests}"
 
 [tool.hatch.envs.hatch-test]
 dependencies = [
@@ -60,14 +60,14 @@ report-xml = "coverage xml"
 report-uncovered-html = "coverage html --skip-covered --skip-empty"
 
 [tool.coverage.run]
-source_pkgs = ["fdpclient"]
+source_pkgs = ["fairclient"]
 branch = true
 parallel = true
-omit = ["src/fdpclient/__about__.py"]
+omit = ["src/fairclient/__about__.py"]
 
 [tool.coverage.paths]
-fdpclient = ["src/fdpclient", "*/fdpclient/src/fdpclient"]
-tests = ["tests", "*/fdpclient/tests"]
+fairclient = ["src/fairclient", "*/fairclient/src/fairclient"]
+tests = ["tests", "*/fairclient/tests"]
 
 [tool.coverage.report]
 exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]

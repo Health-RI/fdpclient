@@ -6,9 +6,7 @@
 from rdflib import Graph
 from rdflib.compare import to_isomorphic
 
-from fdpclient.utils import (
-    rewrite_graph_subject,
-)
+from fairclient.utils import rewrite_graph_subject
 
 
 def test_subject_replacement():

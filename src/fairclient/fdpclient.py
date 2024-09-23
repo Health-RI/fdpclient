@@ -10,7 +10,7 @@ from enum import Enum
 import requests
 from rdflib import Graph, URIRef
 
-from fdpclient.basicclient import BasicAPIClient
+from fairclient.basicclient import BasicAPIClient
 
 logger = logging.getLogger(__name__)
 

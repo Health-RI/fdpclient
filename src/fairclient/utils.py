@@ -11,8 +11,8 @@ from rdflib import DCAT, RDF, Graph, URIRef
 if TYPE_CHECKING:
     from rdflib.term import Node
 
-    from fdpclient.fdpclient import FDPClient
-    from fdpclient.sparqlclient import FDPSPARQLClient
+    from fairclient.fdpclient import FDPClient
+    from fairclient.sparqlclient import FDPSPARQLClient
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ def rewrite_graph_subject(
 
 def add_or_update_dataset(
     metadata: Graph,
-    fdpclient: FDPClient,
+    fairclient: FDPClient,
     dataset_identifier: str | None = None,
     catalog_uri: str | None = None,
     sparql: FDPSPARQLClient | None = None,
@@ -57,8 +57,8 @@ def add_or_update_dataset(
     ----------
     metadata : Graph
         The metadata to be published
-    fdpclient : FDPClient
-        Instance of FDPClient where the dataset will be pushed to
+    fairclient : fairclient
+        Instance of fairclient where the dataset will be pushed to
     dataset_identifier : str, optional
         DCAT Identifier of the dataset to match for updating the dataset, by default None
     catalog_uri : str, optional
@@ -71,13 +71,13 @@ def add_or_update_dataset(
             logger.debug("Matched subject to %s", fdp_subject_uri)
             old_subject = metadata.value(predicate=RDF.type, object=DCAT.Dataset, any=False)
             rewrite_graph_subject(metadata, old_subject, fdp_subject_uri)
-            return fdpclient.update_serialized(fdp_subject_uri, metadata)
+            return fairclient.update_serialized(fdp_subject_uri, metadata)
 
         logger.debug("No match found")
     else:
         logger.debug("Not all information for potential updating is given, create and publishing.")
 
-    return fdpclient.create_and_publish("dataset", metadata)
+    return fairclient.create_and_publish("dataset", metadata)
 
 
 def remove_node_from_graph(node, graph: Graph):

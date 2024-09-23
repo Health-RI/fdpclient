@@ -10,8 +10,8 @@ from rdflib import Graph, URIRef
 from rdflib.compare import to_isomorphic
 from rdflib.namespace import DCAT, RDF
 
-from fdpclient.fdpclient import FDPClient
-from fdpclient.utils import remove_node_from_graph
+from fairclient.fdpclient import FDPClient
+from fairclient.utils import remove_node_from_graph
 
 
 @pytest.fixture
@@ -172,8 +172,8 @@ def test_fdp_get_dataset(requests_mock, fdp_client_mock: FDPClient):
 
 
 # @pytest.mark.repeat(1)
-# @patch("img2catalog.fdpclient.FDPClient.post_serialized")
-# @patch("img2catalog.fdpclient.FDPClient.publish_record")
+# @patch("img2catalog.fairclient.fairclient.post_serialized")
+# @patch("img2catalog.fairclient.fairclient.publish_record")
 # publish_record, post_serialized, requests_mock
 def test_fdp_create_and_publish(requests_mock, fdp_client_mock):
     empty_graph = Graph()

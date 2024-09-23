@@ -5,7 +5,7 @@
 import pytest
 import requests
 
-from fdpclient.basicclient import BasicAPIClient
+from fairclient.basicclient import BasicAPIClient
 
 
 @pytest.fixture
