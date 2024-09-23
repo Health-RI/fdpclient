@@ -33,7 +33,7 @@ jobs:
 
     - name: Install Hatch
       uses: pypa/hatch@install
-  
+
     - name: Run static analysis
       run: hatch fmt --check
 

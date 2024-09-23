@@ -69,17 +69,13 @@ def add_or_update_dataset(
     if sparql and dataset_identifier and catalog_uri:
         if fdp_subject_uri := sparql.find_subject(dataset_identifier, catalog_uri):
             logger.debug("Matched subject to %s", fdp_subject_uri)
-            old_subject = metadata.value(
-                predicate=RDF.type, object=DCAT.Dataset, any=False
-            )
+            old_subject = metadata.value(predicate=RDF.type, object=DCAT.Dataset, any=False)
             rewrite_graph_subject(metadata, old_subject, fdp_subject_uri)
             return fdpclient.update_serialized(fdp_subject_uri, metadata)
 
         logger.debug("No match found")
     else:
-        logger.debug(
-            "Not all information for potential updating is given, create and publishing."
-        )
+        logger.debug("Not all information for potential updating is given, create and publishing.")
 
     return fdpclient.create_and_publish("dataset", metadata)
 
