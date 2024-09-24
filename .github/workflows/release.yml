@@ -1,0 +1,65 @@
+name: build and release
+
+on:
+    release:
+      types: [published]
+
+
+env:
+PYTHON_VERSION: "3.12"
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v5
+              with:
+                python-version: ${{ matrix.python-version }}
+
+            - name: Install Hatch
+              uses: pypa/hatch@install
+        
+            - name: Run static analysis
+              run: hatch fmt --check
+        
+            - name: Check types
+              run: hatch run types:check
+
+            - name: Run tests
+              run: hatch test
+
+            - name: Build package
+              run: hatch build
+
+            - name: Upload build artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: python-artifacts
+                path: dist/*
+                if-no-files-found: error
+
+    publish-pypi:
+        name: Publish to PyPI
+        needs: python-artifacts
+        runs-on: ubuntu-latest
+
+        permissions:
+        id-token: write
+
+        steps:
+            - name: Download Python artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: python-artifacts
+                  path: dist
+
+            - name: Push Python artifacts to PyPI
+              uses: pypa/gh-action-pypi-publish@v1.10.2
+              with:
+                  skip-existing: true
