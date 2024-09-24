@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Stichting Health-RI
+#
+# SPDX-License-Identifier: MIT
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

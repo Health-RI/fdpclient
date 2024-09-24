@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Stichting Health-RI
 #
 # SPDX-License-Identifier: MIT
+
 from __future__ import annotations
 
 import logging

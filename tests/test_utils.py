@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: MIT
 
-
 from rdflib import Graph
 from rdflib.compare import to_isomorphic
 
