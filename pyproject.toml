@@ -34,7 +34,13 @@ Issues = "https://github.com/health-ri/fairclient/issues"
 Source = "https://github.com/health-ri/fairclient"
 
 [tool.hatch.version]
-path = "src/fairclient/__about__.py"
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/fairclient/_version.py"
 
 [tool.hatch.envs.types]
 extra-dependencies = ["mypy>=1.0.0", "pytest"]
@@ -67,7 +73,7 @@ report-uncovered-html = "coverage html --skip-covered --skip-empty"
 source_pkgs = ["fairclient"]
 branch = true
 parallel = true
-omit = ["src/fairclient/__about__.py"]
+omit = ["src/fairclient/_version.py"]
 
 [tool.coverage.paths]
 fairclient = ["src/fairclient", "*/fairclient/src/fairclient"]

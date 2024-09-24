@@ -4,6 +4,9 @@
 # VS Code
 .vscode/
 
+# Auto-generated file
+src/fairclient/_version.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
